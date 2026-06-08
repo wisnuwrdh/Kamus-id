@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useApp } from '@/lib/store'
 
 export default function LockScreen() {
-  const { state, actions } = useApp()
+  const { state, dispatch, actions } = useApp()
   const [pin, setPin] = useState('')
   const [error, setError] = useState(false)
   const [isFirstLaunch, setIsFirstLaunch] = useState(false)
@@ -46,20 +46,22 @@ export default function LockScreen() {
     setPin((p) => p.slice(0, -1))
   }, [isFirstLaunch])
 
-  const handleSetup = useCallback(async () => {
-    if (setupStep === 'initial') {
-      if (setupPin.length !== 4) return
+  // Auto-advance to confirm step when 4 digits entered
+  useEffect(() => {
+    if (setupStep === 'initial' && setupPin.length === 4) {
       setSetupStep('confirm')
-    } else {
-      if (setupPin !== setupConfirm) {
-        if (navigator.vibrate) navigator.vibrate([80, 40, 80])
-        return
-      }
-      await actions.setPin(setupPin)
-      setIsFirstLaunch(false)
-      await actions.checkPin(setupPin)
     }
-  }, [setupStep, setupPin, setupConfirm, actions])
+  }, [setupPin, setupStep])
+
+  const handleSetup = useCallback(async () => {
+    if (setupPin !== setupConfirm) {
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80])
+      return
+    }
+    await actions.setPin(setupPin)
+    setIsFirstLaunch(false)
+    dispatch({ type: 'UNLOCK' })
+  }, [setupPin, setupConfirm, actions, dispatch])
 
   const fakeWords = ['', 'm', 'mu', 'mus', 'musk']
 
@@ -301,8 +303,16 @@ function FirstLaunchStep({
               </button>
             ))}
             <button
+              onClick={() => setSetupPin(p => p.length < 4 ? p + '0' : p)}
+              className="aspect-square rounded-full border-[1.5px] border-vault-green bg-[#1a3d2b] text-vault-text
+                         font-mono text-[1.1rem] font-medium transition-all duration-150
+                         shadow-[0_2px_8px_rgba(0,0,0,0.4)] active:scale-[0.88] active:bg-vault-green"
+            >
+              0
+            </button>
+            <button
               onClick={() => setSetupPin(p => p.slice(0, -1))}
-              className="col-start-2 aspect-square rounded-full bg-transparent border-transparent
+              className="aspect-square rounded-full bg-transparent border-transparent
                          text-vault-muted font-mono text-[1.1rem] active:text-vault-danger"
             >
               ⌫
@@ -341,8 +351,16 @@ function FirstLaunchStep({
               </button>
             ))}
             <button
+              onClick={() => setSetupConfirm((p) => (p.length < 4 ? p + '0' : p))}
+              className="aspect-square rounded-full border-[1.5px] border-vault-gold bg-[#3d3020] text-vault-text
+                         font-mono text-[1.1rem] font-medium transition-all duration-150
+                         shadow-[0_2px_8px_rgba(0,0,0,0.4)] active:scale-[0.88] active:bg-vault-gold-dim"
+            >
+              0
+            </button>
+            <button
               onClick={() => setSetupConfirm((p) => p.slice(0, -1))}
-              className="col-start-2 aspect-square rounded-full bg-transparent border-transparent
+              className="aspect-square rounded-full bg-transparent border-transparent
                          text-vault-muted font-mono text-[1.1rem] active:text-vault-danger"
             >
               ⌫
