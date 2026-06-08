@@ -452,11 +452,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async (id: string) => {
       const m = state.media.find((x) => x.id === id)
       if (!m) return
-      m.fav = !m.fav
-      const meta = { ...m, blob: null }
-      await putMedia(meta)
+      const newFav = !m.fav
+      await putMedia({ ...m, fav: newFav, blob: null })
       dispatch({ type: 'TOGGLE_FAV', id })
-      showToast(m.fav ? '★ Ditambah ke favorit' : 'Dihapus dari favorit')
+      showToast(newFav ? '★ Ditambah ke favorit' : 'Dihapus dari favorit')
     },
     [state.media, showToast]
   )

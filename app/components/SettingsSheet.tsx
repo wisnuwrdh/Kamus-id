@@ -65,15 +65,27 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
         })),
       }
 
-      const chunks: BlobPart[] = []
-      const manifestStr = JSON.stringify(metadata)
-      const manifestBytes = new TextEncoder().encode(manifestStr)
-      chunks.push(new Blob([manifestBytes], { type: 'application/json' }))
+      const encoder = new TextEncoder()
+      const chunks: Uint8Array[] = []
+
+      // Helper to push length-prefixed data
+      const push = (data: Uint8Array) => {
+        const lenBuf = new Uint8Array(4)
+        new DataView(lenBuf.buffer).setUint32(0, data.length, true)
+        chunks.push(lenBuf, data)
+      }
+
+      // Manifest: length-prefixed
+      const manifestBytes = encoder.encode(JSON.stringify(metadata))
+      push(manifestBytes)
 
       let done = 0
       for (const m of state.media) {
         setBackupProgress(Math.round((done / state.media.length) * 100))
         setBackupMsg(`Mengemas ${done + 1}/${state.media.length}...`)
+
+        // Push ID (always)
+        push(encoder.encode(m.id))
 
         let blob = m.blob
         if (!blob) {
@@ -81,7 +93,9 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
         }
         if (blob) {
           const ab = await blob.arrayBuffer()
-          chunks.push(new Blob([ab], { type: blob.type }))
+          push(new Uint8Array(ab))
+        } else {
+          push(new Uint8Array(0)) // empty blob
         }
         done++
       }
@@ -89,7 +103,14 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
       setBackupProgress(95)
       setBackupMsg('Menyusun file...')
 
-      const finalBlob = new Blob(chunks, { type: 'application/octet-stream' })
+      const allParts = new Uint8Array(chunks.reduce((sum, c) => sum + c.length, 0))
+      let offset = 0
+      for (const c of chunks) {
+        allParts.set(c, offset)
+        offset += c.length
+      }
+
+      const finalBlob = new Blob([allParts], { type: 'application/octet-stream' })
       const d = new Date()
       const fname = `vault-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.vault`
       const url = URL.createObjectURL(finalBlob)
@@ -181,24 +202,37 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
         offset += idLen
 
         const dataLen = readU32()
-        if (dataLen === null || dataLen === 0 || offset + dataLen > bytes.length) break
-        const dataBytes = bytes.slice(offset, offset + dataLen)
-        offset += dataLen
+        if (dataLen === null || offset + dataLen > bytes.length) break
 
-        const blob = new Blob([dataBytes], { type: meta.mime || 'application/octet-stream' })
         const item = {
-          ...meta,
-          blob,
-          _opfs: true,
+          id,
+          name: meta.name,
+          type: meta.type,
+          mime: meta.mime,
+          timestamp: meta.timestamp,
+          date: meta.date,
+          fav: meta.fav || false,
+          size: meta.size || 0,
+          albumId: meta.albumId || null,
+          thumb: meta.thumb || null,
         }
 
-        // Save blob via Capacitor FS if available
-        const storageMod = await import('@/lib/storage')
-        const ok = await storageMod.saveBlob(id, blob)
-        if (ok) {
-          await storageMod.putMedia({ ...item, blob: null })
+        if (dataLen > 0) {
+          const dataBytes = bytes.slice(offset, offset + dataLen)
+          offset += dataLen
+          const blob = new Blob([dataBytes], { type: meta.mime || 'application/octet-stream' })
+
+          const storageMod = await import('@/lib/storage')
+          const ok = await storageMod.saveBlob(id, blob)
+          if (ok) {
+            await storageMod.putMedia({ ...item, blob: null })
+          } else {
+            await storageMod.putMedia({ ...item, blob })
+          }
         } else {
-          await storageMod.putMedia(item)
+          offset += 0
+          const storageMod = await import('@/lib/storage')
+          await storageMod.putMedia({ ...item, blob: null })
         }
 
         mediaMetaList.push({ ...item, blob: null })
