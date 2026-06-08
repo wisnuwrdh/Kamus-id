@@ -36,8 +36,10 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Copy web build to Capacitor
-        run: npx cap copy
+      - name: Sync Capacitor (add platform + copy + update plugins)
+        run: |
+          npx cap add android 2>/dev/null || true
+          npx cap sync android
 
       - name: Build APK (debug)
         run: |

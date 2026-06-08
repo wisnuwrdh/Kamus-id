@@ -110,24 +110,45 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
         offset += c.length
       }
 
-      const finalBlob = new Blob([allParts], { type: 'application/octet-stream' })
       const d = new Date()
       const fname = `vault-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.vault`
-      const url = URL.createObjectURL(finalBlob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fname
-      a.style.display = 'none'
-      document.body.appendChild(a)
-      a.click()
-      setTimeout(() => {
-        URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      }, 3000)
 
-      setBackupProgress(100)
-      setBackupMsg('Berhasil! File siap di-download')
-      setTimeout(() => setShowBackup(false), 1500)
+      // Try saving via Capacitor Filesystem (Downloads folder)
+      try {
+        const mod = await import('@capacitor/filesystem')
+        let binary = ''
+        const chunkSize = 8192
+        for (let i = 0; i < allParts.length; i += chunkSize) {
+          binary += String.fromCharCode(...allParts.subarray(i, i + chunkSize))
+        }
+        const base64 = btoa(binary)
+        await mod.Filesystem.writeFile({
+          path: fname,
+          data: base64,
+          directory: mod.Directory.Downloads,
+        })
+        setBackupProgress(100)
+        setBackupMsg(`✅ Tersimpan di folder Downloads/${fname}`)
+        setTimeout(() => setShowBackup(false), 2000)
+      } catch {
+        // Fallback: browser download (dev mode)
+        const finalBlob = new Blob([allParts], { type: 'application/octet-stream' })
+        const url = URL.createObjectURL(finalBlob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fname
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }, 3000)
+
+        setBackupProgress(100)
+        setBackupMsg('Berhasil! File siap di-download')
+        setTimeout(() => setShowBackup(false), 1500)
+      }
     } catch (e) {
       console.error('Backup error:', e)
       actions.showToast('❌ Backup gagal: ' + (e as Error).message)
