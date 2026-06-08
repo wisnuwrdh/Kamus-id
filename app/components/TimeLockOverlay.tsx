@@ -3,13 +3,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useApp } from '@/lib/store'
 import { fmtDateTime } from '@/lib/utils'
+import { getLastClock, setLastClock } from '@/lib/storage'
 
 export default function TimeLockOverlay() {
   const { state } = useApp()
   const [now, setNow] = useState(Date.now())
+  const [clockTampered, setClockTampered] = useState(false)
   const tl = state.timeLock
 
-  const isActive = tl && now < tl.unlockAt
+  // Detect clock manipulation
+  useEffect(() => {
+    const lastClock = getLastClock()
+    const current = Date.now()
+    if (lastClock > 0 && current < lastClock) {
+      setClockTampered(true)
+    }
+    setLastClock(current)
+  }, [])
+
+  const isActive = clockTampered || (tl && now < tl.unlockAt)
 
   useEffect(() => {
     if (!isActive) return
@@ -17,16 +29,16 @@ export default function TimeLockOverlay() {
     return () => clearInterval(interval)
   }, [isActive])
 
-  if (!isActive || !tl) return null
+  if (!isActive) return null
 
-  const diff = tl.unlockAt - now
-  const days = Math.floor(diff / 86400000)
-  const hours = Math.floor((diff % 86400000) / 3600000)
-  const mins = Math.floor((diff % 3600000) / 60000)
-  const secs = Math.floor((diff % 60000) / 1000)
-  const total = tl.unlockAt - tl.startAt
-  const passed = now - tl.startAt
-  const pct = total > 0 ? Math.min(100, (passed / total) * 100) : 0
+  const diff = tl ? tl.unlockAt - now : 0
+  const days = Math.max(0, Math.floor(diff / 86400000))
+  const hours = Math.max(0, Math.floor((diff % 86400000) / 3600000))
+  const mins = Math.max(0, Math.floor((diff % 3600000) / 60000))
+  const secs = Math.max(0, Math.floor((diff % 60000) / 1000))
+  const total = tl ? tl.unlockAt - tl.startAt : 1
+  const passed = now - (tl ? tl.startAt : now)
+  const pct = total > 0 ? Math.min(100, Math.max(0, (passed / total) * 100)) : 0
 
   const CountdownBlock = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center gap-1.5 bg-vault-card border border-vault-border rounded-xl py-2.5 px-1.5">
@@ -69,41 +81,49 @@ export default function TimeLockOverlay() {
         {/* Word card */}
         <div className="w-full bg-vault-card border border-vault-border rounded-xl px-3.5 py-3 flex-shrink-0">
           <div className="flex items-baseline gap-2.5 mb-1">
-            <span className="font-display text-[1.15rem] text-vault-text">terkunci</span>
-            <span className="text-[0.6rem] text-vault-green tracking-[0.05em]">• ter·kun·ci •</span>
+            <span className="font-display text-[1.15rem] text-vault-text">{clockTampered ? 'dicurangi' : 'terkunci'}</span>
+            <span className="text-[0.6rem] text-vault-green tracking-[0.05em]">• {clockTampered ? 'di·cu·rangi' : 'ter·kun·ci'} •</span>
           </div>
           <div className="text-[0.6rem] text-vault-muted mb-1">adjective</div>
           <div className="text-[0.72rem] text-vault-text leading-[1.55]">
-            Dalam keadaan dikunci; tidak dapat dibuka sampai waktu yang ditentukan tiba.
+            {clockTampered
+              ? 'Terdeteksi perubahan jam pada perangkat. Vault tetap dikunci untuk keamanan.'
+              : 'Dalam keadaan dikunci; tidak dapat dibuka sampai waktu yang ditentukan tiba.'}
           </div>
           <div className="text-[0.65rem] text-vault-muted mt-1.5 italic leading-[1.5]">
-            &ldquo;Pintu itu masih <span className="text-vault-green">terkunci</span> — bersabar menunggu waktunya.&rdquo;
+            {clockTampered
+              ? '&ldquo;Keamanan adalah prioritas — jangan coba-coba.&rdquo;'
+              : '&ldquo;Pintu itu masih <span className="text-vault-green">terkunci</span> — bersabar menunggu waktunya.&rdquo;'}
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="w-full flex items-center gap-2">
-          <div className="flex-1 h-px bg-vault-border" />
-          <span className="text-[0.5rem] text-vault-muted tracking-[0.2em] uppercase">Hitung Mundur</span>
-          <div className="flex-1 h-px bg-vault-border" />
-        </div>
+        {!clockTampered && tl && (
+          <>
+            {/* Separator */}
+            <div className="w-full flex items-center gap-2">
+              <div className="flex-1 h-px bg-vault-border" />
+              <span className="text-[0.5rem] text-vault-muted tracking-[0.2em] uppercase">Hitung Mundur</span>
+              <div className="flex-1 h-px bg-vault-border" />
+            </div>
 
-        {/* Countdown grid */}
-        <div className="grid grid-cols-2 gap-2 w-full max-w-[320px]">
-          <CountdownBlock value={days} label="Hari" />
-          <CountdownBlock value={hours} label="Jam" />
-          <CountdownBlock value={mins} label="Menit" />
-          <CountdownBlock value={secs} label="Detik" />
-        </div>
+            {/* Countdown grid */}
+            <div className="grid grid-cols-2 gap-2 w-full max-w-[320px]">
+              <CountdownBlock value={days} label="Hari" />
+              <CountdownBlock value={hours} label="Jam" />
+              <CountdownBlock value={mins} label="Menit" />
+              <CountdownBlock value={secs} label="Detik" />
+            </div>
 
-        {/* Unlock info */}
-        <div className="w-full bg-vault-card border border-[#1a3d2b] rounded-xl p-2.5 flex flex-col gap-1">
-          <span className="text-[0.52rem] text-vault-muted tracking-[0.18em] uppercase">Vault bisa dibuka pada</span>
-          <span className="text-[0.72rem] text-[#4caf7d] tracking-[0.04em] font-medium">{fmtDateTime(tl.unlockAt)}</span>
-          <div className="w-full bg-vault-border rounded h-[3px] overflow-hidden mt-1.5">
-            <div className="h-full bg-vault-green rounded transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+            {/* Unlock info */}
+            <div className="w-full bg-vault-card border border-[#1a3d2b] rounded-xl p-2.5 flex flex-col gap-1">
+              <span className="text-[0.52rem] text-vault-muted tracking-[0.18em] uppercase">Vault bisa dibuka pada</span>
+              <span className="text-[0.72rem] text-[#4caf7d] tracking-[0.04em] font-medium">{fmtDateTime(tl.unlockAt)}</span>
+              <div className="w-full bg-vault-border rounded h-[3px] overflow-hidden mt-1.5">
+                <div className="h-full bg-vault-green rounded transition-all" style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="text-[0.52rem] text-vault-muted tracking-[0.12em] text-center leading-[1.8] pb-[calc(10px+env(safe-area-inset-bottom))]">
           Kamus ID — menjaga privasi Anda

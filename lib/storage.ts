@@ -321,3 +321,22 @@ export async function saveTimeLock(data: TimeLock | null): Promise<void> {
     await deleteSetting('timelock')
   }
 }
+
+// ── Clock Tamper Detection ──
+
+const CLOCK_LAST_KEY = 'tl_last_clock'
+
+export function getLastClock(): number {
+  try {
+    const val = localStorage.getItem(CLOCK_LAST_KEY)
+    return val ? parseInt(val, 10) : 0
+  } catch {
+    return 0
+  }
+}
+
+export function setLastClock(ts: number): void {
+  try {
+    localStorage.setItem(CLOCK_LAST_KEY, String(ts))
+  } catch {}
+}

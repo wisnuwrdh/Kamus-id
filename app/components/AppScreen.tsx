@@ -11,7 +11,6 @@ import MultiSelectBar from './MultiSelectBar'
 import NewAlbumModal from './NewAlbumModal'
 import RenameAlbumModal from './RenameAlbumModal'
 import DeleteAlbumModal from './DeleteAlbumModal'
-import TimeLockOverlay from './TimeLockOverlay'
 import TimeLockModal from './TimeLockModal'
 import BottomSheet from './BottomSheet'
 import { fmtSize } from '@/lib/utils'
@@ -223,9 +222,6 @@ export default function AppScreen() {
 
       {/* Lightbox */}
       <Lightbox />
-
-      {/* Time-Lock Overlay */}
-      <TimeLockOverlay />
 
       {/* Sheets & Modals */}
       <UploadSheet isOpen={showUpload} onClose={() => setShowUpload(false)} />

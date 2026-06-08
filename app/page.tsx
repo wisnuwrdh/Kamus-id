@@ -3,6 +3,7 @@
 import { AppProvider, useApp } from '@/lib/store'
 import LockScreen from '@/app/components/LockScreen'
 import AppScreen from '@/app/components/AppScreen'
+import TimeLockOverlay from '@/app/components/TimeLockOverlay'
 import Toast from '@/app/components/Toast'
 
 function AppShell() {
@@ -12,6 +13,7 @@ function AppShell() {
     <>
       {state.currentScreen === 'lock' && <LockScreen />}
       {state.currentScreen === 'app' && state.isUnlocked && <AppScreen />}
+      <TimeLockOverlay />
       <Toast />
     </>
   )

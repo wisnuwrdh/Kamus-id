@@ -27,6 +27,8 @@ import {
   deleteBlob,
   getTimeLock,
   saveTimeLock,
+  getLastClock,
+  setLastClock,
 } from './storage'
 import { hashPIN } from './crypto'
 import { sortMedia, fmtDate } from './utils'
@@ -321,11 +323,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const match = hashed === state.pin
       if (!match) return false
 
-      // If time-lock is active, don't unlock
-      if (state.timeLock && Date.now() < state.timeLock.unlockAt) {
-        showToast('🔒 Vault terkunci waktu, sabar ya')
-        return false
+      const now = Date.now()
+
+      // Clock tamper detection
+      if (state.timeLock) {
+        // If time-lock is still active, reject
+        if (now < state.timeLock.unlockAt) {
+          showToast('🔒 Vault terkunci waktu, sabar ya')
+          setLastClock(now)
+          return false
+        }
+        // If clock was turned back (now < last observation), treat as still locked
+        const lastClock = getLastClock()
+        if (lastClock > 0 && now < lastClock) {
+          showToast('🔒 Deteksi manipulasi waktu! Vault tetap terkunci.')
+          return false
+        }
       }
+      setLastClock(now)
 
       dispatch({ type: 'UNLOCK' })
       return true
