@@ -18,23 +18,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Build Next.js static export
+      - name: Install & Build Next.js
         run: |
           rm -f package-lock.json
           npm install --no-package-lock --no-audit --no-fund 2>&1
-          echo "--- npm version ---"
-          npm --version
-          echo "--- node version ---"
-          node --version
-          echo "--- checking node_modules ---"
-          ls node_modules/.bin/ 2>/dev/null || echo "no .bin"
-          echo "--- verifying next ---"
-          node -e "console.log('next found:', !!require.resolve('next'))"
-          echo "--- running build ---"
           npx next build
-
-      - name: Copy web build to Capacitor
-        run: npx cap copy
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -47,6 +35,9 @@ jobs:
 
       - name: Add Android platform
         run: npx cap add android
+
+      - name: Copy web build to Capacitor
+        run: npx cap copy
 
       - name: Build APK (debug)
         run: |
