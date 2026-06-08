@@ -113,26 +113,48 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
       const d = new Date()
       const fname = `vault-backup-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.vault`
 
-      // Try saving via Capacitor Filesystem (Downloads folder)
+      // Save via Share plugin (available in APK) or fallback to browser download
+      const finalBlob = new Blob([allParts], { type: 'application/octet-stream' })
+
       try {
-        const mod = await import('@capacitor/filesystem')
-        let binary = ''
-        const chunkSize = 8192
-        for (let i = 0; i < allParts.length; i += chunkSize) {
-          binary += String.fromCharCode(...allParts.subarray(i, i + chunkSize))
-        }
-        const base64 = btoa(binary)
-        await mod.Filesystem.writeFile({
-          path: fname,
-          data: base64,
-          directory: mod.Directory.Downloads,
+        const shareMod = await import('@capacitor/share')
+        const fsMod = await import('@capacitor/filesystem')
+
+        // Write to temp location first
+        const blob2 = new Blob([allParts], { type: 'application/octet-stream' })
+        const base64Data = await new Promise<string>((res, rej) => {
+          const reader = new FileReader()
+          reader.onload = () => {
+            const result = reader.result as string
+            res(result.split(',')[1])
+          }
+          reader.onerror = rej
+          reader.readAsDataURL(blob2)
         })
+
+        await fsMod.Filesystem.writeFile({
+          path: fname,
+          data: base64Data,
+          directory: fsMod.Directory.Documents,
+        })
+
+        const fileUri = await fsMod.Filesystem.getUri({
+          path: fname,
+          directory: fsMod.Directory.Documents,
+        })
+
+        await shareMod.Share.share({
+          title: 'Kamus ID Backup',
+          text: fname,
+          url: fileUri.uri,
+          dialogTitle: 'Simpan atau bagikan backup',
+        })
+
         setBackupProgress(100)
-        setBackupMsg(`✅ Tersimpan di folder Downloads/${fname}`)
+        setBackupMsg('✅ File backup siap dibagikan/di-save')
         setTimeout(() => setShowBackup(false), 2000)
       } catch {
         // Fallback: browser download (dev mode)
-        const finalBlob = new Blob([allParts], { type: 'application/octet-stream' })
         const url = URL.createObjectURL(finalBlob)
         const a = document.createElement('a')
         a.href = url
