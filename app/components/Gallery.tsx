@@ -19,34 +19,30 @@ export default function Gallery({ onNewAlbum }: GalleryProps) {
       {/* Albums section on home */}
       {isHome && (
         <>
-          {albums.length > 0 && (
-            <>
-              <div className="col-span-3 px-1.5 pb-1 pt-2.5 text-[0.58rem] tracking-[0.2em] text-vault-muted uppercase flex items-center gap-1">
-                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 stroke-current fill-none stroke-[1.5]">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                </svg>
-                Album ({albums.length})
-              </div>
-              {albums.map((a) => (
-                <AlbumCard key={a.id} album={a} />
-              ))}
+          <div className="col-span-3 px-1.5 pb-1 pt-2.5 text-[0.58rem] tracking-[0.2em] text-vault-muted uppercase flex items-center gap-1">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 stroke-current fill-none stroke-[1.5]">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            Album ({albums.length})
+          </div>
+          {albums.map((a) => (
+            <AlbumCard key={a.id} album={a} />
+          ))}
 
-              {/* New album button */}
-              <div
-                onClick={() => onNewAlbum?.()}
-                className="aspect-square bg-vault-card border-[1.5px] border-dashed border-vault-border
-                           flex flex-col items-center justify-center gap-2 cursor-pointer active:border-vault-gold"
-              >
-                <svg viewBox="0 0 24 24" className="w-[22px] h-[22px] stroke-vault-muted fill-none stroke-[1.5]">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                <span className="text-[0.58rem] text-vault-muted tracking-[0.14em] uppercase">
-                  Album Baru
-                </span>
-              </div>
-            </>
-          )}
+          {/* New album button — always visible on home */}
+          <div
+            onClick={() => onNewAlbum?.()}
+            className="aspect-square bg-vault-card border-[1.5px] border-dashed border-vault-border
+                       flex flex-col items-center justify-center gap-2 cursor-pointer active:border-vault-gold"
+          >
+            <svg viewBox="0 0 24 24" className="w-[22px] h-[22px] stroke-vault-muted fill-none stroke-[1.5]">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span className="text-[0.58rem] text-vault-muted tracking-[0.14em] uppercase">
+              Album Baru
+            </span>
+          </div>
 
           {filtered.length > 0 && (
             <div className="col-span-3 px-1.5 pb-1 pt-2.5 text-[0.58rem] tracking-[0.2em] text-vault-muted uppercase flex items-center gap-1">
@@ -74,6 +70,12 @@ export default function Gallery({ onNewAlbum }: GalleryProps) {
               ? 'Album ini masih kosong\nTap + untuk menambah'
               : 'Vault masih kosong\nTap + untuk menambah media'}
           </p>
+          <button
+            onClick={() => onNewAlbum?.()}
+            className="mt-2 px-5 py-2.5 bg-vault-gold rounded-lg text-vault-bg font-mono text-[0.68rem] tracking-[0.12em] uppercase active:bg-vault-gold-light active:scale-[0.98]"
+          >
+            + Album Baru
+          </button>
         </div>
       )}
 
