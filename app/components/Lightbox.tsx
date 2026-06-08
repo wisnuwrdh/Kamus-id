@@ -325,7 +325,7 @@ export default function Lightbox() {
           className={`absolute top-1/2 -translate-y-1/2 left-2 z-5 w-9 h-9
                      bg-black/40 border border-white/15 text-white/70 flex items-center justify-center
                      rounded transition-all duration-300 active:border-vault-gold active:text-vault-gold
-                     ${uiVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                     opacity-80`}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-current fill-none stroke-[1.5]">
             <polyline points="15 18 9 12 15 6" />
@@ -337,7 +337,7 @@ export default function Lightbox() {
           className={`absolute top-1/2 -translate-y-1/2 right-2 z-5 w-9 h-9
                      bg-black/40 border border-white/15 text-white/70 flex items-center justify-center
                      rounded transition-all duration-300 active:border-vault-gold active:text-vault-gold
-                     ${uiVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                     opacity-80`}
         >
           <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-current fill-none stroke-[1.5]">
             <polyline points="9 18 15 12 9 6" />
