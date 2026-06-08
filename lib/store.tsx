@@ -562,7 +562,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         (state.lightboxIndex + dir + filtered.length) % filtered.length
       dispatch({ type: 'SET_LIGHTBOX_INDEX', index: newIdx })
     },
-    [state.lightboxIndex, state.media, state.filter, state.currentAlbum, state.sort]
+    [state.lightboxIndex]
+    // Note: getFilteredMedia excluded because it's declared after navLightbox
   )
 
   const toggleMulti = useCallback((id: string) => {
@@ -580,7 +581,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } else {
       dispatch({ type: 'SET_ALL_MULTI', ids: list.map((m) => m.id) })
     }
-  }, [state.multiSelect.size])
+    }, [state.multiSelect.size, dispatch])
 
   const setMenuAlbum = useCallback((id: string | null) => {
     dispatch({ type: 'SET_MENU_ALBUM', id })

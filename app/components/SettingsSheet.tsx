@@ -177,7 +177,7 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
       actions.showToast('❌ Backup gagal: ' + (e as Error).message)
       setShowBackup(false)
     }
-  }, [state.media, state.albums, actions])
+  }, [state.media, state.albums, actions, onClose])
 
   const handleRestore = useCallback(async (file: File) => {
     if (!file) return
@@ -309,7 +309,7 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
       setShowBackup(false)
       actions.showToast('❌ Restore gagal: ' + (e as Error).message)
     }
-  }, [actions, dispatch])
+  }, [actions, dispatch, onClose])
 
   const handleReset = useCallback(async () => {
     await actions.clearData()
