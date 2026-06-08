@@ -19,14 +19,13 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: |
-          ls package.json
-          npm install
-          ls node_modules/.bin/ || echo "no bin dir"
-          which next || echo "next not in PATH"
+        run: npm install
+
+      - name: Verify next binary
+        run: ls -la node_modules/.bin/next
 
       - name: Build Next.js static export
-        run: npx --yes next build
+        run: npm run build
 
       - name: Copy web build to Capacitor
         run: npx cap copy
