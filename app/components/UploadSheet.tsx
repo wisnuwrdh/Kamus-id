@@ -26,12 +26,12 @@ export default function UploadSheet({ isOpen, onClose }: UploadSheetProps) {
       setUploadTotal(files.length)
       setUploadProgress(0)
       setUploading(true)
+      onClose()
       await actions.uploadFiles(Array.from(files), selectedAlbum, (done, total) => {
         setUploadProgress(done)
         setUploadTotal(total)
       })
       setUploading(false)
-      onClose()
       actions.showToast(`${files.length} file ditambahkan`)
     },
     [selectedAlbum, actions, onClose]

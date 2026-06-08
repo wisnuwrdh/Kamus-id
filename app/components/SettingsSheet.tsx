@@ -43,6 +43,7 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
       return
     }
     setShowBackup(true)
+    onClose()
     setBackupProgress(0)
     setBackupMsg('Menyiapkan...')
 
@@ -181,6 +182,7 @@ export default function SettingsSheet({ isOpen, onClose, onOpenTL }: SettingsShe
   const handleRestore = useCallback(async (file: File) => {
     if (!file) return
     setShowBackup(true)
+    onClose()
     setBackupProgress(0)
     setBackupMsg('Membaca file backup...')
     try {
