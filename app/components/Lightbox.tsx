@@ -365,6 +365,7 @@ export default function Lightbox() {
             className="absolute inset-0 w-full h-full object-contain"
             playsInline
             src={actions.getUrlForMedia(m) || ''}
+            poster={m.thumb || undefined}
             onLoadedMetadata={() => {
               if (vidRef.current) {
                 setVidDur(vidRef.current.duration)

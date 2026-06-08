@@ -5,7 +5,6 @@ import { useApp } from '@/lib/store'
 import Gallery from './Gallery'
 import Lightbox from './Lightbox'
 import UploadSheet from './UploadSheet'
-import AlbumPicker from './AlbumPicker'
 import SettingsSheet from './SettingsSheet'
 import MultiSelectBar from './MultiSelectBar'
 import NewAlbumModal from './NewAlbumModal'
@@ -35,7 +34,6 @@ const SORT_ORDER = ['newest', 'oldest', 'largest', 'name']
 export default function AppScreen() {
   const { state, dispatch, actions } = useApp()
   const [showUpload, setShowUpload] = useState(false)
-  const [showPicker, setShowPicker] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showNewAlbum, setShowNewAlbum] = useState(false)
   const [renameAlbumId, setRenameAlbumId] = useState<string | null>(null)
@@ -225,11 +223,6 @@ export default function AppScreen() {
 
       {/* Sheets & Modals */}
       <UploadSheet isOpen={showUpload} onClose={() => setShowUpload(false)} />
-      <AlbumPicker
-        isOpen={showPicker}
-        onClose={() => setShowPicker(false)}
-        onSelect={() => {}}
-      />
       <SettingsSheet
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}

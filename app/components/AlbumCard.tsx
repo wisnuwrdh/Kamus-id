@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useApp } from '@/lib/store'
-import type { Album } from '@/lib/types'
+import type { Album, MediaItem } from '@/lib/types'
 
 export default function AlbumCard({ album }: { album: Album }) {
   const { state, dispatch, actions } = useApp()
@@ -34,7 +34,7 @@ export default function AlbumCard({ album }: { album: Album }) {
         />
       )
     }
-    if (firstMedia.blob) {
+    if (firstMedia.blob && firstMedia.type !== 'video') {
       const url = actions.getUrlForMedia(firstMedia)
       if (url) {
         return (
@@ -47,7 +47,19 @@ export default function AlbumCard({ album }: { album: Album }) {
       }
     }
     return (
-      <div className="w-full h-full bg-gradient-to-br from-vault-card to-vault-surface" />
+      <div className="w-full h-full bg-gradient-to-br from-vault-card to-vault-surface flex items-center justify-center">
+        <svg viewBox="0 0 24 24" className="w-7 h-7 stroke-vault-border fill-none stroke-[1]">
+          {firstMedia?.type === 'video' ? (
+            <polygon points="5 3 19 12 5 21 5 3" />
+          ) : (
+            <>
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </>
+          )}
+        </svg>
+      </div>
     )
   }, [firstMedia, actions])
 
