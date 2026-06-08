@@ -18,11 +18,20 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
-
       - name: Build Next.js static export
-        run: ./node_modules/.bin/next build
+        run: |
+          rm -f package-lock.json
+          npm install --no-package-lock --no-audit --no-fund 2>&1
+          echo "--- npm version ---"
+          npm --version
+          echo "--- node version ---"
+          node --version
+          echo "--- checking node_modules ---"
+          ls node_modules/.bin/ 2>/dev/null || echo "no .bin"
+          echo "--- verifying next ---"
+          node -e "console.log('next found:', !!require.resolve('next'))"
+          echo "--- running build ---"
+          npx next build
 
       - name: Copy web build to Capacitor
         run: npx cap copy
