@@ -13,9 +13,7 @@ export default function LockScreen() {
   const [setupStep, setSetupStep] = useState<'initial' | 'confirm'>('initial')
 
   useEffect(() => {
-    if (!state.pin) {
-      setIsFirstLaunch(true)
-    }
+    setIsFirstLaunch(!state.pin)
   }, [state.pin])
 
   const handleNum = useCallback(
