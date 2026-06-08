@@ -45,7 +45,7 @@ export default function PhotoCard({ media, index }: PhotoCardProps) {
       </div>
     ) : null
 
-    if (isV && media.thumb) {
+    if (media.thumb) {
       return (
         <>
           <img src={media.thumb} alt={media.name} className="w-full h-full object-cover block" />
@@ -54,7 +54,7 @@ export default function PhotoCard({ media, index }: PhotoCardProps) {
       )
     }
 
-    if (media.blob) {
+    if (media.blob && !isV) {
       const url = actions.getUrlForMedia(media)
       if (url) {
         return (
@@ -66,16 +66,24 @@ export default function PhotoCard({ media, index }: PhotoCardProps) {
       }
     }
 
-    if (media.thumb) {
-      return (
-        <>
-          <img src={media.thumb} alt={media.name} className="w-full h-full object-cover block lazy-thumb" />
-          {badge}
-        </>
-      )
-    }
-
-    return badge
+    return (
+      <>
+        <div className="w-full h-full bg-gradient-to-br from-vault-card to-vault-surface flex items-center justify-center">
+          {isV ? (
+            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-vault-muted/50 fill-none stroke-[1.5]">
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-vault-muted/50 fill-none stroke-[1.5]">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          )}
+        </div>
+        {badge}
+      </>
+    )
   }, [media, isV, isG, actions])
 
   return (

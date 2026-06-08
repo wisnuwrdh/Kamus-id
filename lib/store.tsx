@@ -802,7 +802,7 @@ async function generateThumbFromVideo(file: File): Promise<string | null> {
       } catch {
         clearTimeout(timeout)
         URL.revokeObjectURL(url)
-        res(null)
+        res(generateVideoFallbackThumb())
       }
     })
 
@@ -811,7 +811,7 @@ async function generateThumbFromVideo(file: File): Promise<string | null> {
       () => {
         clearTimeout(timeout)
         URL.revokeObjectURL(url)
-        res(null)
+        res(generateVideoFallbackThumb())
       },
       { once: true }
     )
