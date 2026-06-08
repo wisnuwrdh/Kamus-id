@@ -19,17 +19,10 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: |
-          npm install 2>&1
-          echo "--- node_modules size ---"
-          du -sh node_modules/ 2>/dev/null || echo "no node_modules"
-          echo "--- bin contents ---"
-          ls node_modules/.bin/ 2>/dev/null || echo "no bin dir"
-          echo "--- next in node_modules ---"
-          ls -d node_modules/next 2>/dev/null || echo "next not found"
+        run: npm install
 
       - name: Build Next.js static export
-        run: npm run build
+        run: ./node_modules/.bin/next build
 
       - name: Copy web build to Capacitor
         run: npx cap copy
