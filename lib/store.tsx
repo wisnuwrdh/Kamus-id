@@ -218,7 +218,7 @@ interface AppContextValue {
     checkPin: (pin: string) => Promise<boolean>
     setPin: (pin: string) => Promise<void>
     lock: () => void
-    uploadFiles: (files: File[], albumId: string | null) => Promise<void>
+    uploadFiles: (files: File[], albumId: string | null, onProgress?: (done: number, total: number) => void) => Promise<void>
     deleteMedia: (id: string) => Promise<void>
     bulkDelete: (ids: string[]) => Promise<void>
     bulkMove: (ids: string[], albumId: string | null) => Promise<void>
@@ -348,9 +348,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const uploadFiles = useCallback(
-    async (files: File[], albumId: string | null) => {
+    async (files: File[], albumId: string | null, onProgress?: (done: number, total: number) => void) => {
       const items: MediaItem[] = []
-      for (const f of files) {
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i]
         const isVideo = f.type.startsWith('video/')
         const isGif = f.type === 'image/gif'
         const type = isGif ? 'gif' : isVideo ? 'video' : 'photo'
@@ -393,6 +394,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           await addMedia(item)
           items.push(item)
         }
+
+        onProgress?.(i + 1, files.length)
       }
       dispatch({ type: 'ADD_MEDIA', items })
     },

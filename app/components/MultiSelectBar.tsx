@@ -3,10 +3,12 @@
 import { useCallback, useState, useRef, useEffect } from 'react'
 import { useApp } from '@/lib/store'
 import BottomSheet from './BottomSheet'
+import Modal from './Modal'
 
 export default function MultiSelectBar() {
   const { state, dispatch, actions } = useApp()
   const [showMove, setShowMove] = useState(false)
+  const [showConfirmDel, setShowConfirmDel] = useState(false)
   const multiRef = useRef(state.multiSelect)
   useEffect(() => { multiRef.current = state.multiSelect }, [state.multiSelect])
 
@@ -74,7 +76,7 @@ export default function MultiSelectBar() {
             Pindah
           </button>
           <button
-            onClick={handleDelete}
+            onClick={() => setShowConfirmDel(true)}
             className="px-3.5 py-2 bg-transparent border border-vault-danger rounded-lg text-vault-danger font-mono text-[0.62rem]"
           >
             <svg viewBox="0 0 24 24" className="w-[13px] h-[13px] stroke-current fill-none stroke-2 inline-block align-middle mr-1">
@@ -116,6 +118,31 @@ export default function MultiSelectBar() {
           ))}
         </div>
       </BottomSheet>
+
+      {/* Delete confirmation */}
+      <Modal isOpen={showConfirmDel} onClose={() => setShowConfirmDel(false)} title="Hapus File">
+        <p className="text-[0.65rem] text-vault-muted tracking-[0.08em] leading-[1.6]">
+          Yakin hapus <strong className="text-vault-text">{multiRef.current.size} file</strong>?<br />
+          File akan terhapus permanen dari vault.
+        </p>
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => setShowConfirmDel(false)}
+            className="flex-1 py-3 bg-transparent border border-vault-border rounded-lg text-vault-muted font-mono text-[0.68rem] tracking-[0.1em] uppercase active:border-vault-text"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => {
+              setShowConfirmDel(false)
+              handleDelete()
+            }}
+            className="flex-1 py-3 bg-vault-danger rounded-lg text-white font-mono text-[0.68rem] tracking-[0.1em] uppercase active:opacity-80"
+          >
+            Ya, Hapus
+          </button>
+        </div>
+      </Modal>
     </>
   )
 }

@@ -3,6 +3,7 @@
 import { useRef, useCallback, useState } from 'react'
 import { useApp } from '@/lib/store'
 import BottomSheet from './BottomSheet'
+import Modal from './Modal'
 
 interface UploadSheetProps {
   isOpen: boolean
@@ -16,12 +17,19 @@ export default function UploadSheet({ isOpen, onClose }: UploadSheetProps) {
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [showAlbumPicker, setShowAlbumPicker] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadTotal, setUploadTotal] = useState(0)
 
   const handleFiles = useCallback(
     async (files: FileList | null) => {
       if (!files || files.length === 0) return
+      setUploadTotal(files.length)
+      setUploadProgress(0)
       setUploading(true)
-      await actions.uploadFiles(Array.from(files), selectedAlbum)
+      await actions.uploadFiles(Array.from(files), selectedAlbum, (done, total) => {
+        setUploadProgress(done)
+        setUploadTotal(total)
+      })
       setUploading(false)
       onClose()
       actions.showToast(`${files.length} file ditambahkan`)
@@ -129,6 +137,21 @@ export default function UploadSheet({ isOpen, onClose }: UploadSheetProps) {
           Batal
         </button>
       </BottomSheet>
+
+      {/* Upload progress modal */}
+      <Modal isOpen={uploading} onClose={() => {}} title="Mengupload...">
+        <div className="py-2">
+          <div className="w-full bg-vault-border rounded h-1.5 overflow-hidden">
+            <div
+              className="h-full bg-vault-gold rounded transition-all duration-300"
+              style={{ width: `${uploadTotal > 0 ? (uploadProgress / uploadTotal) * 100 : 0}%` }}
+            />
+          </div>
+          <p className="text-[0.65rem] text-vault-muted tracking-[0.08em] text-center mt-2.5">
+            {uploadProgress} / {uploadTotal} file
+          </p>
+        </div>
+      </Modal>
     </>
   )
 }

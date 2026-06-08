@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useApp } from '@/lib/store'
 import { fmtTime } from '@/lib/utils'
 import MoveAlbumSheet from './MoveAlbumSheet'
+import Modal from './Modal'
 
 export default function Lightbox() {
   const { state, dispatch, actions } = useApp()
@@ -15,6 +16,7 @@ export default function Lightbox() {
   const [vidCurrent, setVidCurrent] = useState(0)
   const [vidDur, setVidDur] = useState(0)
   const [showMoveSheet, setShowMoveSheet] = useState(false)
+  const [showConfirmDel, setShowConfirmDel] = useState(false)
   const [scale, setScale] = useState(1)
   const [panX, setPanX] = useState(0)
   const [panY, setPanY] = useState(0)
@@ -132,6 +134,10 @@ export default function Lightbox() {
       actions.showToast('File dihapus')
     }, 50)
   }, [m, actions, close])
+
+  const handleDelClick = useCallback(() => {
+    setShowConfirmDel(true)
+  }, [])
 
   // Keyboard navigation
   useEffect(() => {
@@ -281,7 +287,7 @@ export default function Lightbox() {
             </svg>
           </button>
           <button
-            onClick={handleDelete}
+            onClick={handleDelClick}
             className="w-9 h-9 rounded-md border border-vault-border bg-transparent flex items-center justify-center text-vault-muted"
           >
             <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-current fill-none stroke-[1.5]">
@@ -502,6 +508,31 @@ export default function Lightbox() {
           </span>
         </div>
       </div>
+
+      {/* Delete confirmation */}
+      <Modal isOpen={showConfirmDel} onClose={() => setShowConfirmDel(false)} title="Hapus File">
+        <p className="text-[0.65rem] text-vault-muted tracking-[0.08em] leading-[1.6]">
+          Yakin hapus file <strong className="text-vault-text">&ldquo;{m?.name}&rdquo;</strong>?<br />
+          File akan terhapus permanen dari vault.
+        </p>
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => setShowConfirmDel(false)}
+            className="flex-1 py-3 bg-transparent border border-vault-border rounded-lg text-vault-muted font-mono text-[0.68rem] tracking-[0.1em] uppercase active:border-vault-text"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => {
+              setShowConfirmDel(false)
+              handleDelete()
+            }}
+            className="flex-1 py-3 bg-vault-danger rounded-lg text-white font-mono text-[0.68rem] tracking-[0.1em] uppercase active:opacity-80"
+          >
+            Ya, Hapus
+          </button>
+        </div>
+      </Modal>
 
       {/* Move sheet */}
       <MoveAlbumSheet isOpen={showMoveSheet} onClose={() => setShowMoveSheet(false)} mediaId={m.id} />
